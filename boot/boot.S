@@ -207,7 +207,7 @@ loadkernel:
             mov   es, ax        ; base addr is zero, we're in real
             mov   ebx, 1000h    ; place to load kernel - has to be in realmem
             mov   ah, 02h       ; command to read
-            mov   al, 02h       ; number of sectors to read
+            mov   al, 03h       ; number of sectors to read
             mov   ch, 0         ; cylinder
             mov   cl, 02h       ; sector to start (addr starts at 1)
             mov   dh, 0         ; disk head
@@ -222,7 +222,7 @@ loadkernel:
             mov   edi,00100000h   ; we can do this, because of unreal mode!
             mov   ax,ds           ; moving with a base of ds b/c in real mode
             mov   es,ax
-            mov   cx,256          ; 256*4 = 1024bytes
+            mov   cx,384					; 384*4 = 1536 = 3 sectors
             a32 rep movsd         ; 'a32' tells it to use esi/edi instead of si/di
             mov   ax,0            ; error code = success
             .end:

@@ -7,14 +7,17 @@ COPTS=-c -Wall #-Werror
 
 all: kernel
 
-kernel: start_kernel.o kmain.o util.o
-	$(LD) -T kernel.lnk -o kernel.bin start_kernel.o kmain.o util.o
+kernel: start_kernel.o kmain.o util.o io.o
+	$(LD) -T kernel.lnk -o kernel.bin start_kernel.o kmain.o util.o io.o
 
 start_kernel.o: start_kernel.asm
 	nasm -felf -o start_kernel.o start_kernel.asm	
 
 kmain.o: kmain.c
 	$(GCC) $(COPTS) kmain.c 
+
+io.o: io.h io.c
+	$(GCC) $(COPTS) io.c
 
 util.o: util.h util.c
 	$(GCC) $(COPTS) util.c
