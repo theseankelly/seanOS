@@ -1,0 +1,10 @@
+Welcome to seanOS!
+
+The source code contained in this repository is a hobby OS developed by Sean Kelly.
+
+The scope of the project is simply to learn more about the implementation of operating systems.
+
+In order to build this system, you'll need a valid x86-elf cross compiler set up on your system.
+Instructions to do so can be found at http://wiki.osdev.org/GCC_Cross-Compiler.  The makefile should be updated
+appropriately.
+

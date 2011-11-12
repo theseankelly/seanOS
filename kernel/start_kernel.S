@@ -7,4 +7,3 @@ start_kernel:
 		call	kmain
     mov   dword [0b8000h], "K R "
 		hlt
-

@@ -10,8 +10,8 @@ all: kernel
 kernel: start_kernel.o kmain.o util.o io.o
 	$(LD) -T kernel.lnk -o kernel.bin start_kernel.o kmain.o util.o io.o
 
-start_kernel.o: start_kernel.asm
-	nasm -felf -o start_kernel.o start_kernel.asm	
+start_kernel.o: start_kernel.S
+	nasm -felf -o start_kernel.o start_kernel.S
 
 kmain.o: kmain.c
 	$(GCC) $(COPTS) kmain.c 

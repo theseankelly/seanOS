@@ -5,16 +5,15 @@ LD=/usr/local/cross/bin/i686-elf-ld
 MAKE=exec make
 CDIMG=cdimage
 BOOTDIR=boot
-KERNDIR=kernel
 
 all: cdimage flpimage
 
 cdimage: bootloader kernel
 	mkdir -p $(CDIMG)
 	mkdir -p $(CDIMG)/$(BOOTDIR)
-	mkdir -p $(CDIMG)/$(KERNDIR)
 	cp ../boot/cdboot.bin $(CDIMG)/$(BOOTDIR)/stage1
-	cp ../kernel/kernel.bin $(CDIMG)/$(KERNDIR)/kernel
+	cp ../boot/stage2.bin $(CDIMG)/$(BOOTDIR)/stage2	
+	cp ../kernel/kernel.bin $(CDIMG)/$(BOOTDIR)/kernel
 	mkisofs -R -b $(BOOTDIR)/stage1 -no-emul-boot -boot-load-size 4 -o livecd.iso $(CDIMG)
 
 flpimage: makefloppy bootloader kernel
