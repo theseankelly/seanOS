@@ -11,6 +11,7 @@
 SEC_SIZE   equ 0x0800           ; size of sector on CD (2kib)
 DIR_LOC    equ 0x7C00+SEC_SIZE  ; where we're loading dirs, etc
 STAGE2     equ 0x0600           ; where we're putting stage2 in memory
+STACK_LOC  equ STAGE2
 KERN_LBA	 equ STAGE2+8					; where stage2 wants to find kernel info
 KERN_SIZE	 equ KERN_LBA+4
 SECT_SIZE  equ KERN_SIZE+4      ; to tell stage2 about sector size
@@ -35,7 +36,7 @@ real_start:
       mov   ds, ax
       mov   es, ax
       mov   ss, ax				; set up stack
-      mov   sp, STAGE2		; starts just under stage2
+      mov   sp, STACK_LOC ; starts just under stage2
       push  dx            ; save the boot drive just in case
 
 			mov		si,st_loaded	; notify user that we've loaded
@@ -107,10 +108,9 @@ real_start:
 			jnz		.fail
 			mov		si,success
 			call	putstr
-  
+     
 			; Now we're ready to jump to stage 2!
 			jmp		STAGE2
-
 .fail:mov		si, fail
 			call	putstr
 .end: sti
