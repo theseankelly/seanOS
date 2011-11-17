@@ -6,4 +6,8 @@ start_kernel:
     mov   dword [0b8000h], "K N "
 		call	kmain
     mov   dword [0b8000h], "K R "
-		hlt
+		
+		sti	
+.end:hlt
+		jmp		.end
+times 4000 db 0

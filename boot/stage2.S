@@ -52,7 +52,7 @@ real_start:
       jnz   .fail
       mov    si, success
       call  putstr
-      
+     
       ; Load GDT  
       mov    si, st_gdt 
       call  putstr
@@ -69,7 +69,7 @@ real_start:
       
       jmp   0x10:start_pmode ; jump to clear pipeline of non-32b inst
 
-.fail:mov    si, fail
+.fail:mov   si, fail
       call  putstr 
 .end: sti
       hlt                 ; Something foul happened :(
@@ -248,10 +248,12 @@ putstr:
 start_pmode:
             mov ax, 0x08        ; need to load data segment into ds/ss
             mov ds, ax
-            mov ss, ax
+          	mov	es, ax 
+						mov ss, ax
             mov esp, 0x090000   ; move stack pointer to 090000h, gives us a 65kb stack
                                 ; this is probably a weird place for a stack long term
-            jmp 0x10:KERNEL     ; jmp to kernel!
+           	xchg	bx, bx 
+						jmp 0x10:KERNEL     ; jmp to kernel!
 
 ;----------------------------------------------------------
 ; Data

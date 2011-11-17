@@ -1,0 +1,45 @@
+v0.1 - proof of concept
+working bootloader
+basic kernel
+
+v0.2 - barebones
+reliable cdboot
+basic kernel
+
+v0.3 - basics
+multiboot compliant
+interrupts
+
+v0.4 - memory management
+paging support
+basic memory manager
+
+v0.5 - Drivers
+(USB?) Keyboard Driver
+IDE/SATA Driver
+
+v0.6 - FS
+ISO9660 Support
+FAT or EXT Support
+
+v0.7 - UEX & Processes
+simple user shell
+can run a process
+
+v0.8 - Installation
+Reliable HD Boot
+Install Utility
+
+v0.9 - 	Quality
+
+v1.0
+Everything
+
+
+v2.0
+Network Stack
+Process Management
+Multiprocessing
+Compiler support
+GUI
+
