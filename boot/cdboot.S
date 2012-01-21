@@ -15,7 +15,7 @@ STACK_LOC  equ STAGE2
 KERN_LBA	 equ STAGE2+8					; where stage2 wants to find kernel info
 KERN_SIZE	 equ KERN_LBA+4
 SECT_SIZE  equ KERN_SIZE+4      ; to tell stage2 about sector size
-
+INT13_TRIES	equ	0x05  					; how many times in13 should try
 
 [bits 16]                 ; using 16 bit assembly
 [org 0x7C00]              ; standard location of bootloader
@@ -42,7 +42,7 @@ real_start:
 			mov		si,st_loaded	; notify user that we've loaded
 			call  putstr
 
-			; so now we begin the task of finding PVD
+			; so now we begin the task of finding PVD on ISO9660
 			; descriptors start at 0x10
 			; load one (2kib) sector
 			; check first byte to see if it's 1 (id of PVD)
@@ -138,9 +138,9 @@ load_pvd:
 .loadsec: mov		dword [lbanum], eax
 					; set up for int 13
 					mov		si, DAP			; address of packet
-					mov		ah, 0x42		; function number
-					int		0x13				; execute!
-					jc		.done				; if carry is set, error
+          call  readmem
+          cmp   ah, 0       ; see if we failed
+          jnz   .done	
           cmp   byte [ds:DIR_LOC],0x01    ; found the PVD
           jz    .success
           cmp   byte [ds:DIR_LOC],0xFF    ; reached end of descriptors
@@ -168,16 +168,16 @@ load_pvd:
 load_pt:
         mov   eax,[ds:DIR_LOC+132]			; PT size (bytes)
         shr		eax,11										; bytes -> blocks (divide by 2k)
-        add		ax,1											; add one in case it was < 2k
+        add		ax,1											; add one to cover less significant digits
         mov		word [numsect], ax        ; number of sectors to read
         mov		word [destoff], DIR_LOC   ; place to put them
         mov		word [destseg], ds
         mov		eax,[ds:DIR_LOC+140]      ; LBA of PT
         mov		dword [lbanum], eax
         mov		si, DAP                   ; address of packet
-        mov		ah,0x42                   ; function number
-        int		0x13                      ; perform read
-        jc    .done
+        call  readmem
+        cmp   ah,0                      ; see if we failed
+        jnz   .done
         mov   ax, 0x00
 .done:  ret
 
@@ -234,11 +234,10 @@ load_boot:
             mov   eax, [ds:bx+2]          ; offset to lba num in PT
             mov   dword [lbanum], eax     ; lba offset    
 					  mov   si, DAP                 ; address of packet
-            mov   ah, 0x42                ; function number
-            int   0x13                    ; do it.	
-            jc   .done
+            call  readmem
+            cmp   ah, 0
+            jnz   .done 
             mov   ax,0 
-            ;mov		al, [ds:bx+8]			; put first letter in al (for dbg purposes)
 .done:      ret
 
 
@@ -280,9 +279,9 @@ load_stage2:
 						mov		eax, [ds:bx+2] 
 						mov		dword [lbanum], eax
 						mov		si, DAP
-						mov		ah, 0x42
-						int		0x13	
-						jc		.done	
+            call  readmem
+            cmp   ah, 0
+            jnz   .done
             mov   ax, 0 
 .done:			ret
 
@@ -374,6 +373,24 @@ strcmp:
 .done:    ret
 
 
+; readmem
+; 16 bit, real mode
+; executes int13 ah=42, retrying appropriately in case of failure
+; input:      address of DAP in ds:si
+; output:     ah=0 on sucess, nonzero if fail
+; destroyed:  ax, cx
+readmem:  
+          mov   cx, INT13_TRIES   ; number of times to try
+.retry:   mov   ah, 0x42
+          int   0x13
+          jnc   .done
+          dec   cx
+          cmp   cx, 0
+          jz    .done
+          jmp   .retry
+.done:    ret 
+
+
 				
 ;------------------------------------------------------------
 ; Data
@@ -405,6 +422,7 @@ st_ldpt           db  'Loading Path Table..................',0
 st_ldboot         db  'Loading /boot.......................',0
 st_ldstg2         db  'Loading stage2......................',0
 st_findkern				db	'Finding Kernel......................',0
+st_try            db  'Try',13,10,0
 ; Success and fail strings
 success           db  'Done',13,10,0
 fail              db  'Fail',13,10,0

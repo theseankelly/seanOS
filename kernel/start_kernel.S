@@ -10,4 +10,4 @@ start_kernel:
 		sti	
 .end:hlt
 		jmp		.end
-times 4000 db 0
+;times 1000000 db 0

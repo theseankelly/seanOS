@@ -10,7 +10,8 @@
 ;--------------------------------------------------------
 ; Environment Variables
 ;--------------------------------------------------------
-KERNEL_LOC    equ 0x1000
+INT13_TRIES	  equ	0x05
+KERNEL_LOC    equ 0x7C00
 KERNEL        equ 0x100000
 
 start: 
@@ -165,18 +166,23 @@ wait_for_kbd_out:
 ; output:     ax = 0 on success, nonzero on fail    
 ; destroyed:  eax, bx, cx, esi, edi 
 loadkernel:
-            mov    eax, [kernsize]             ; set up DAP
-            mov    word [numsect], ax
-            mov    eax, [kernloc]
-            mov    dword [lbanum], eax
-            mov    word [destoff], KERNEL_LOC  ; load to < 1mb
-            mov    word [destseg], ds  
-            mov    si, DAP
-            mov    ah, 0x42
-            int    0x13            ; do the read
-            jc    .done
+           
+						; So, there are some issues here
+						; #1) There's only a limited amount of space to load to in <1mb
+						; #2) int 13 might fail.  Retry
+						; #3) There's a limited recommended amount of bytes to read with int13
+            mov   eax, [kernsize]             ; set up DAP
+            mov   word [numsect], ax
+            mov   eax, [kernloc]
+            mov   dword [lbanum], eax
+            mov   word [destoff], KERNEL_LOC  ; load to < 1mb
+            mov   word [destseg], ds  
+            mov   si, DAP
+            call  readmem         ; do the read
+            cmp   ah, 0           ; see if we failed
+            jnz   .done
 						
-						; now we have to move to > 1mb 
+            ; now we have to move to > 1mb 
 						call  unrealmode			; setup unreal mode
 						mov   esi,KERNEL_LOC  ; place we're moving from
             mov   edi,KERNEL      ; place we're moving to
@@ -239,6 +245,24 @@ putstr:
         jmp    .ldchr      ; go to next char  
   
 .done:  ret
+
+
+; readmem
+; 16 bit, real mode
+; executes int13 ah=42, retrying appropriately in case of failure
+; input:      address of DAP in ds:si
+; output:     ah=0 on sucess, nonzero if fail
+; destroyed:  ax, cx
+readmem:  
+          mov   cx, INT13_TRIES   ; number of times to try
+.retry:   mov   ah, 0x42
+          int   0x13
+          jnc   .done
+          dec   cx
+          cmp   cx, 0
+          jz    .done
+          jmp   .retry
+.done:    ret 
 
 
 ; start_pmode
